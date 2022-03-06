@@ -1,4 +1,3 @@
-
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
@@ -54,13 +53,15 @@
   :ensure t
   :init (exec-path-from-shell-initialize))
 
-(use-package format-all
+
+
+(use-package yasnippet
   :ensure t
   :init
-  (add-hook 'prog-mode-hook 'format-all-mode
-	    'format-all-mode-hook 'format-all-ensure-formatter)
-  :bind (("C-c f" . format-all-buffer))
-  )
+  (yas-global-mode 1))
+
+
+
 
 ;;  default backends
 ;;  (company-bbdb company-semantic company-cmake company-capf company-clang company-files (company-dabbrev-code company-gtags company-etags company-keywords) company-oddmuse company-dabbrev)
@@ -72,53 +73,38 @@
   (setq company-minimum-prefix-length 1
 	company-idle-delay 0
 	company-show-numbers t)
-  :bind (("C-c n" . company-other-backend))
   )
 
 
-(use-package eglot
+(use-package lsp-mode
   :ensure t
   :init
-  (add-hook 'python-mode-hook 'eglot-ensure)
-  )
-
-
-(add-hook 'eglot-managed-mode-hook (lambda () (setq-local company-backends '((company-keywords company-capf company-dabbrev-code) company-files))))
-
-
-
-(use-package tex
-  :ensure auctex
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l")
   :config
-  (setq TeX-view-program-list '(("Evince" "evince %o")))
-  (setq TeX-engine 'xelatex)
-  )
+  (setq lsp-clients-pylsp-library-directories "/home/yangtao/miniconda3/bin/")
+  (setq lsp-pylsp-plugins-autopep8-enabled t)
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         (python-mode . lsp)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp)
 
-(use-package reftex
+;; optionally
+(use-package lsp-ui
   :ensure t
-  :init
-  (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+  :commands lsp-ui-mode)
+
+(use-package lsp-treemacs
+  :ensure t 
+  :commands lsp-treemacs-errors-list)
+
+
+;; optional if you want which-key integration
+(use-package which-key
+  :ensure t 
   :config
-  (setq reftex-toc-split-windows-horizontally t)
-  (setq reftex-toc-split-windows-fraction 0.2)
-  )
-
-(use-package company-auctex
-  :ensure t
-  )
-
-(use-package company-reftex
-  :ensure t
-  )
-
-
-(add-hook 'LaTeX-mode-hook (lambda ()
-			     (setq-local company-backends
-					 '((company-auctex-macros company-auctex-symbols company-auctex-environments company-reftex-labels company-reftex-citations) company-ispell company-files)
-					 )))
-
-
-
+  (which-key-mode))
 
 (use-package ido
   :ensure t
@@ -130,94 +116,30 @@
 
 ;; ibuffer
 (use-package ibuffer
+  :ensure t
   :init (defalias 'list-buffers 'ibuffer))
 
-(use-package magit
+
+(use-package tramp
   :ensure t
-  :bind (("C-x g" . magit)))
+  :init
+  (setq tramp-default-method "ssh"))
+
+
+(use-package smart-mode-line
+  :ensure t
+  :init
+  (setq sml/no-confirm-load-theme t) 
+  (setq sml/theme 'respectful) 
+  (sml/setup))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(format-all-default-formatters
-   '(("Assembly" asmfmt)
-     ("ATS" atsfmt)
-     ("Bazel" buildifier)
-     ("BibTeX" emacs-bibtex)
-     ("C" clang-format)
-     ("C#" clang-format)
-     ("C++" clang-format)
-     ("Cabal Config" cabal-fmt)
-     ("Clojure" cljfmt)
-     ("CMake" cmake-format)
-     ("Crystal" crystal)
-     ("CSS" prettier)
-     ("Cuda" clang-format)
-     ("D" dfmt)
-     ("Dart" dart-format)
-     ("Dhall" dhall)
-     ("Dockerfile" dockfmt)
-     ("Elixir" mix-format)
-     ("Elm" elm-format)
-     ("Emacs Lisp" emacs-lisp)
-     ("F#" fantomas)
-     ("Fish" fish-indent)
-     ("Fortran Free Form" fprettify)
-     ("GLSL" clang-format)
-     ("Go" gofmt)
-     ("GraphQL" prettier)
-     ("Haskell" brittany)
-     ("HTML" html-tidy)
-     ("Java" clang-format)
-     ("JavaScript" prettier)
-     ("JSON" prettier)
-     ("Jsonnet" jsonnetfmt)
-     ("JSX" prettier)
-     ("Kotlin" ktlint)
-     ("LaTeX" latexindent)
-     ("Less" prettier)
-     ("Literate Haskell" brittany)
-     ("Lua" lua-fmt)
-     ("Markdown" prettier)
-     ("Nix" nixpkgs-fmt)
-     ("Objective-C" clang-format)
-     ("OCaml" ocp-indent)
-     ("Perl" perltidy)
-     ("PHP" prettier)
-     ("Protocol Buffer" clang-format)
-     ("PureScript" purty)
-     ("Python" yapf)
-     ("R" styler)
-     ("Reason" bsrefmt)
-     ("ReScript" rescript)
-     ("Ruby" rufo)
-     ("Rust" rustfmt)
-     ("Scala" scalafmt)
-     ("SCSS" prettier)
-     ("Shell" shfmt)
-     ("Solidity" prettier)
-     ("SQL" sqlformat)
-     ("Svelte" prettier)
-     ("Swift" swiftformat)
-     ("Terraform" terraform-fmt)
-     ("TOML" prettier)
-     ("TSX" prettier)
-     ("TypeScript" prettier)
-     ("V" v-fmt)
-     ("Verilog" istyle-verilog)
-     ("Vue" prettier)
-     ("XML" html-tidy)
-     ("YAML" prettier)
-     ("_Angular" prettier)
-     ("_Flow" prettier)
-     ("_Gleam" gleam)
-     ("_Ledger" ledger-mode)
-     ("_Nginx" nginxfmt)
-     ("_Snakemake" snakefmt)))
  '(package-selected-packages
-   '(magit use-package restart-emacs rainbow-delimiters gruvbox-theme format-all exec-path-from-shell eglot drag-stuff company-reftex company-auctex)))
+   '(smart-mode-line which-key lsp-treemacs lsp-ui lsp-mode company yasnippet exec-path-from-shell rainbow-delimiters drag-stuff gruvbox-theme restart-emacs use-package cmake-mode)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
